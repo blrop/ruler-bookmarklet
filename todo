@@ -1,0 +1,4 @@
+- ability to resize to negative values
+- make exit with removing of all elements (including overlay)
+- ignore right click
+- move / resize using keyboard (arrows / shift + arrows)
