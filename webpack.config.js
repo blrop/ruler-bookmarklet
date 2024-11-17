@@ -7,4 +7,5 @@ module.exports = {
         filename: 'bookmarklet.js',
         path: path.resolve(__dirname, 'dist'),
     },
+    watch: true,
 };
