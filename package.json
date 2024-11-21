@@ -1,8 +1,12 @@
 {
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "start": "webpack --watch"
   },
   "devDependencies": {
+    "source-map-loader": "^5.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.3",
     "webpack": "^5.91.0"
   }
 }
