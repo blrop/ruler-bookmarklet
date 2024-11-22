@@ -72,7 +72,7 @@ export const bookmarklet = () => {
         const topDistance = mouse.y - ruler.top;
         const bottomDistance = rulerBottom - mouse.y;
 
-        if (leftDistance < 0 || rightDistance < 0 || topDistance < 0 || bottomDistance < 0) {
+        if (leftDistance < -EDGE_SIZE || rightDistance < -EDGE_SIZE || topDistance < -EDGE_SIZE || bottomDistance < -EDGE_SIZE) {
             return CursorPosition.Outside;
         }
 
@@ -81,7 +81,7 @@ export const bookmarklet = () => {
         }
 
         const isNear = (distance: number) =>
-            (0 <= distance && distance <= EDGE_SIZE) ? 1 : 0;
+            (-EDGE_SIZE <= distance && distance <= EDGE_SIZE) ? 1 : 0;
 
         const nearLeft = isNear(leftDistance);
         const nearRight = isNear(rightDistance);
@@ -159,7 +159,7 @@ export const bookmarklet = () => {
 
     // event listeners -------------------------------------------------------------------------------------------------
 
-    $ruler.addEventListener('mousedown', (e) => {
+    $overlay.addEventListener('mousedown', (e) => {
         if (e.button !== 0) {
             return;
         }
