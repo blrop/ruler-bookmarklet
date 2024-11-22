@@ -146,6 +146,10 @@ export const bookmarklet = () => {
     setElementPosition($ruler, RULER);
 
     const $rulerInfo = document.createElement('div');
+    setStyle($rulerInfo, {
+        background: 'white',
+        padding: '1px 3px',
+    });
 
     document.body.appendChild($overlay);
     $overlay.appendChild($ruler);

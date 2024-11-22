@@ -1,8 +1,6 @@
 - make exit with removing of all elements (including overlay)
     - via Esc
     - via close button
-- make background for the numbers
-- ignore right click
 - move / resize using keyboard (arrows / shift + arrows)
 - show numbers outside of the ruler if the ruler is too small
 - show left, top (and right, bottom?)
