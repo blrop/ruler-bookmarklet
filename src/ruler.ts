@@ -156,6 +156,10 @@ export const bookmarklet = () => {
     // event listeners -------------------------------------------------------------------------------------------------
 
     $ruler.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) {
+            return;
+        }
+
         const cursorPosition = getCursorPosition(RULER, { x: e.clientX, y: e.clientY });
 
         MOVE.lastMouseX = e.clientX;
@@ -246,7 +250,11 @@ export const bookmarklet = () => {
         $rulerInfo.innerText = `${RULER.width} x ${RULER.height}`;
     });
 
-    $overlay.addEventListener('mouseup', () => {
+    $overlay.addEventListener('mouseup', (e) => {
+        if (e.button !== 0) {
+            return;
+        }
+
         MOVE.moving = false;
     });
 };
