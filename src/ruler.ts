@@ -121,10 +121,10 @@ export const bookmarklet = () => {
         lastRulerHeight: null,
     };
     const RULER = {
-        left: window.innerWidth / 4,
-        top: window.innerHeight / 4,
-        width: window.innerWidth / 2,
-        height: window.innerHeight / 2,
+        left: Math.round(window.innerWidth / 4),
+        top: Math.round(window.innerHeight / 4),
+        width: Math.round(window.innerWidth / 2),
+        height: Math.round(window.innerHeight / 2),
     };
 
     const setStyle = (element: HTMLElement, styleArray: Partial<CSSStyleDeclaration>) => {
@@ -179,49 +179,69 @@ export const bookmarklet = () => {
             return;
         }
 
+        const distanceX = e.clientX - MOVE.lastMouseX;
+        const distanceY = e.clientY - MOVE.lastMouseY;
+
         if (MOVE.cursorPosition === CursorPosition.Inside) {
-            RULER.left = e.clientX - MOVE.lastMouseX + MOVE.lastRulerLeft;
-            RULER.top = e.clientY - MOVE.lastMouseY + MOVE.lastRulerTop;
-            setElementPosition($ruler, RULER);
+            RULER.left = distanceX + MOVE.lastRulerLeft;
+            RULER.top = distanceY + MOVE.lastRulerTop;
         }
 
         if (MOVE.cursorPosition === CursorPosition.LeftTop) {
-            RULER.width = -(e.clientX - MOVE.lastMouseX) + MOVE.lastRulerWidth;
-            RULER.height = -(e.clientY - MOVE.lastMouseY) + MOVE.lastRulerHeight;
-            RULER.left = e.clientX - MOVE.lastMouseX + MOVE.lastRulerLeft;
-            RULER.top = e.clientY - MOVE.lastMouseY + MOVE.lastRulerTop;
-            setElementPosition($ruler, RULER);
+            RULER.width = -distanceX + MOVE.lastRulerWidth;
+            RULER.height = -distanceY + MOVE.lastRulerHeight;
+            if (distanceX <= MOVE.lastRulerWidth) {
+                RULER.left = distanceX + MOVE.lastRulerLeft;
+            }
+            if (distanceY <= MOVE.lastRulerHeight) {
+                RULER.top = distanceY + MOVE.lastRulerTop;
+            }
         }
 
         if (MOVE.cursorPosition === CursorPosition.Top) {
-
+            RULER.height = -distanceY + MOVE.lastRulerHeight;
+            if (distanceY <= MOVE.lastRulerHeight) {
+                RULER.top = distanceY + MOVE.lastRulerTop;
+            }
         }
 
         if (MOVE.cursorPosition === CursorPosition.RightTop) {
-
+            RULER.width = distanceX + MOVE.lastRulerWidth;
+            RULER.height = -distanceY + MOVE.lastRulerHeight;
+            if (distanceY <= MOVE.lastRulerHeight) {
+                RULER.top = distanceY + MOVE.lastRulerTop;
+            }
         }
 
         if (MOVE.cursorPosition === CursorPosition.Right) {
-
+            RULER.width = distanceX + MOVE.lastRulerWidth;
         }
 
         if (MOVE.cursorPosition === CursorPosition.RightBottom) {
-            RULER.width = e.clientX - MOVE.lastMouseX + MOVE.lastRulerWidth;
-            RULER.height = e.clientY - MOVE.lastMouseY + MOVE.lastRulerHeight;
-            setElementPosition($ruler, RULER);
+            RULER.width = distanceX + MOVE.lastRulerWidth;
+            RULER.height = distanceY + MOVE.lastRulerHeight;
         }
 
         if (MOVE.cursorPosition === CursorPosition.Bottom) {
-
+            RULER.height = distanceY + MOVE.lastRulerHeight;
         }
 
         if (MOVE.cursorPosition === CursorPosition.LeftBottom) {
-
+            RULER.width = -distanceX + MOVE.lastRulerWidth;
+            RULER.height = distanceY + MOVE.lastRulerHeight;
+            if (distanceX <= MOVE.lastRulerWidth) {
+                RULER.left = distanceX + MOVE.lastRulerLeft;
+            }
         }
 
         if (MOVE.cursorPosition === CursorPosition.Left) {
-
+            RULER.width = -distanceX + MOVE.lastRulerWidth;
+            if (distanceX <= MOVE.lastRulerWidth) {
+                RULER.left = distanceX + MOVE.lastRulerLeft;
+            }
         }
+
+        setElementPosition($ruler, RULER);
 
         $rulerInfo.innerText = `${RULER.width} x ${RULER.height}`;
     });

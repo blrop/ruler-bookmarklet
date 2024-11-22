@@ -1,4 +1,3 @@
-- ability to resize to negative values
 - make exit with removing of all elements (including overlay)
     - via Esc
     - via close button
@@ -7,8 +6,8 @@
 - move / resize using keyboard (arrows / shift + arrows)
 - show numbers outside of the ruler if the ruler is too small
 - show left, top (and right, bottom?)
-- add rest corner resizers
-- add edge resizers
 
 - add favicon
 - source map (doesn't work now)
+
+- cannot resize if size became too small
