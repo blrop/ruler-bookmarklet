@@ -1,4 +1,14 @@
 export const bookmarklet = () => {
+    const EDGE_SIZE = 10;
+    const OVERLAY_STYLE = {
+        position: 'fixed',
+        inset: '0',
+    };
+    const RULER_INFO_STYLE = {
+        background: 'white',
+        padding: '1px 3px',
+    };
+
     type ElementPosition = {
         left: number,
         top: number,
@@ -38,144 +48,13 @@ export const bookmarklet = () => {
         lastRulerHeight: number,
     };
 
-    const EDGE_SIZE = 10;
-
-    const rulerStyle = (RULER: ElementPosition) => ({
-        border: '1px solid #1b75d0',
-        background: '#1b75d02b',
-        cursor: 'move',
-        position: 'absolute',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        left: `${RULER.left}px`,
-        width: `${RULER.width}px`,
-        top: `${RULER.top}px`,
-        height: `${RULER.height}px`,
-        userSelect: 'none',
-        fontFamily: 'sans-serif',
-    });
-
-    const setElementPosition = ($el: HTMLElement, position: ElementPosition) => {
-        $el.style.left = `${position.left}px`;
-        $el.style.top = `${position.top}px`;
-        $el.style.width = `${position.width}px`;
-        $el.style.height = `${position.height}px`;
-    };
-
-    const getCursorPosition = (ruler: ElementPosition, mouse: Coords): CursorPosition => {
-        const rulerRight = ruler.left + ruler.width;
-        const rulerBottom = ruler.top + ruler.height;
-
-        const leftDistance = mouse.x - ruler.left;
-        const rightDistance = rulerRight - mouse.x;
-        const topDistance = mouse.y - ruler.top;
-        const bottomDistance = rulerBottom - mouse.y;
-
-        if (leftDistance < -EDGE_SIZE || rightDistance < -EDGE_SIZE || topDistance < -EDGE_SIZE || bottomDistance < -EDGE_SIZE) {
-            return CursorPosition.Outside;
-        }
-
-        if (leftDistance > EDGE_SIZE && rightDistance > EDGE_SIZE && topDistance > EDGE_SIZE && bottomDistance > EDGE_SIZE) {
-            return CursorPosition.Inside;
-        }
-
-        const isNear = (distance: number) =>
-            -EDGE_SIZE <= distance && distance <= EDGE_SIZE;
-
-        const nearLeft = isNear(leftDistance);
-        const nearRight = isNear(rightDistance) && !nearLeft;
-        const nearTop = isNear(topDistance);
-        const nearBottom = isNear(bottomDistance) && !nearTop;
-
-        return (+nearLeft << 3) | (+nearRight << 2) | (+nearTop << 1) | +nearBottom;
-    };
-
-    const getCursorStyleByPosition = (cursorPosition: CursorPosition): string => {
-        const positionToStyle: Record<CursorPosition, string> = {
-            [CursorPosition.Left]: 'ew-resize',
-            [CursorPosition.Right]: 'ew-resize',
-            [CursorPosition.Top]: 'ns-resize',
-            [CursorPosition.Bottom]: 'ns-resize',
-            [CursorPosition.RightTop]: 'nesw-resize',
-            [CursorPosition.LeftBottom]: 'nesw-resize',
-            [CursorPosition.LeftTop]: 'nwse-resize',
-            [CursorPosition.RightBottom]: 'nwse-resize',
-            [CursorPosition.Inside]: 'move',
-            [CursorPosition.Outside]: 'default',
-        };
-
-        return positionToStyle[cursorPosition];
-    };
-
-    // constants -------------------------------------------------------------------------------------------------------
-
-    const MOVE: Move = {
-        moving: false,
-        cursorPosition: CursorPosition.Inside,
-        lastMouseX: null,
-        lastMouseY: null,
-        lastRulerLeft: null,
-        lastRulerTop: null,
-        lastRulerWidth: null,
-        lastRulerHeight: null,
-    };
-    const RULER: ElementPosition = {
-        left: Math.round(window.innerWidth / 4),
-        top: Math.round(window.innerHeight / 4),
-        width: Math.round(window.innerWidth / 2),
-        height: Math.round(window.innerHeight / 2),
-    };
+    // functions and classes definitions -------------------------------------------------------------------------------
 
     const setStyle = (element: HTMLElement, styleArray: Partial<CSSStyleDeclaration>) => {
         for (const item in styleArray) {
             element.style[item] = styleArray[item];
         }
     };
-
-    // elements creation -----------------------------------------------------------------------------------------------
-
-    const $overlay: HTMLElement = document.createElement('div');
-    setStyle($overlay, {
-        position: 'fixed',
-        inset: '0',
-    });
-
-    const $ruler = document.createElement('div');
-    setStyle($ruler, rulerStyle(RULER));
-    setElementPosition($ruler, RULER);
-
-    const $rulerInfo = document.createElement('div');
-    setStyle($rulerInfo, {
-        background: 'white',
-        padding: '1px 3px',
-    });
-
-    document.body.appendChild($overlay);
-    $overlay.appendChild($ruler);
-    $ruler.appendChild($rulerInfo);
-
-    $rulerInfo.innerText = `${RULER.width} x ${RULER.height}`; // todo: this is a code duplication; need to create a class
-
-    // event listeners -------------------------------------------------------------------------------------------------
-
-    $overlay.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) {
-            return;
-        }
-
-        const cursorPosition = getCursorPosition(RULER, { x: e.clientX, y: e.clientY });
-
-        MOVE.lastMouseX = e.clientX;
-        MOVE.lastMouseY = e.clientY;
-        MOVE.lastRulerLeft = RULER.left;
-        MOVE.lastRulerTop = RULER.top;
-        MOVE.lastRulerWidth = RULER.width;
-        MOVE.lastRulerHeight = RULER.height;
-
-        MOVE.cursorPosition = cursorPosition;
-        MOVE.moving = true;
-    });
 
     const updateRuler = (distanceX: number, distanceY: number) => { // todo: get rid of global variable usage: convert RULER to an object
         let newWidth = null;
@@ -248,6 +127,145 @@ export const bookmarklet = () => {
         }
     };
 
+    const getRulerStyle = (RULER: ElementPosition) => ({
+        border: '1px solid #1b75d0',
+        background: '#1b75d02b',
+        cursor: 'move',
+        position: 'absolute',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        left: `${RULER.left}px`,
+        width: `${RULER.width}px`,
+        top: `${RULER.top}px`,
+        height: `${RULER.height}px`,
+        userSelect: 'none',
+        fontFamily: 'sans-serif',
+    });
+
+    const setElementPosition = ($el: HTMLElement, position: ElementPosition) => {
+        $el.style.left = `${position.left}px`;
+        $el.style.top = `${position.top}px`;
+        $el.style.width = `${position.width}px`;
+        $el.style.height = `${position.height}px`;
+    };
+
+    const getCursorPosition = (ruler: ElementPosition, mouse: Coords): CursorPosition => {
+        const rulerRight = ruler.left + ruler.width;
+        const rulerBottom = ruler.top + ruler.height;
+
+        const leftDistance = mouse.x - ruler.left;
+        const rightDistance = rulerRight - mouse.x;
+        const topDistance = mouse.y - ruler.top;
+        const bottomDistance = rulerBottom - mouse.y;
+
+        if (leftDistance < -EDGE_SIZE || rightDistance < -EDGE_SIZE || topDistance < -EDGE_SIZE || bottomDistance < -EDGE_SIZE) {
+            return CursorPosition.Outside;
+        }
+
+        if (leftDistance > EDGE_SIZE && rightDistance > EDGE_SIZE && topDistance > EDGE_SIZE && bottomDistance > EDGE_SIZE) {
+            return CursorPosition.Inside;
+        }
+
+        const isNear = (distance: number) =>
+            -EDGE_SIZE <= distance && distance <= EDGE_SIZE;
+
+        const nearLeft = isNear(leftDistance);
+        const nearRight = isNear(rightDistance) && !nearLeft;
+        const nearTop = isNear(topDistance);
+        const nearBottom = isNear(bottomDistance) && !nearTop;
+
+        return (+nearLeft << 3) | (+nearRight << 2) | (+nearTop << 1) | +nearBottom;
+    };
+
+    const getCursorStyleByPosition = (cursorPosition: CursorPosition): string => {
+        const positionToStyle: Record<CursorPosition, string> = {
+            [CursorPosition.Left]: 'ew-resize',
+            [CursorPosition.Right]: 'ew-resize',
+            [CursorPosition.Top]: 'ns-resize',
+            [CursorPosition.Bottom]: 'ns-resize',
+            [CursorPosition.RightTop]: 'nesw-resize',
+            [CursorPosition.LeftBottom]: 'nesw-resize',
+            [CursorPosition.LeftTop]: 'nwse-resize',
+            [CursorPosition.RightBottom]: 'nwse-resize',
+            [CursorPosition.Inside]: 'move',
+            [CursorPosition.Outside]: 'default',
+        };
+
+        return positionToStyle[cursorPosition];
+    };
+
+    class RulerInfo {
+        $el: HTMLElement;
+
+        constructor($el: HTMLElement) {
+            this.$el = $el;
+
+            setStyle(this.$el, RULER_INFO_STYLE);
+        }
+
+        setInfo(width: number, height: number) {
+            $rulerInfo.innerText = `${width} x ${height}`;
+        }
+    }
+
+    // global variables ------------------------------------------------------------------------------------------------
+
+    const MOVE: Move = {
+        moving: false,
+        cursorPosition: CursorPosition.Inside,
+        lastMouseX: null,
+        lastMouseY: null,
+        lastRulerLeft: null,
+        lastRulerTop: null,
+        lastRulerWidth: null,
+        lastRulerHeight: null,
+    };
+    const RULER: ElementPosition = {
+        left: Math.round(window.innerWidth / 4),
+        top: Math.round(window.innerHeight / 4),
+        width: Math.round(window.innerWidth / 2),
+        height: Math.round(window.innerHeight / 2),
+    };
+
+    // elements creation -----------------------------------------------------------------------------------------------
+
+    const $overlay: HTMLElement = document.createElement('div');
+    setStyle($overlay, OVERLAY_STYLE);
+
+    const $ruler = document.createElement('div');
+    setStyle($ruler, getRulerStyle(RULER));
+    setElementPosition($ruler, RULER);
+
+    const $rulerInfo = document.createElement('div');
+
+    document.body.appendChild($overlay);
+    $overlay.appendChild($ruler);
+    $ruler.appendChild($rulerInfo);
+
+    const rulerInfo = new RulerInfo($rulerInfo);
+    rulerInfo.setInfo(RULER.width, RULER.height);
+
+    // event listeners -------------------------------------------------------------------------------------------------
+
+    $overlay.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) {
+            return;
+        }
+
+        const cursorPosition = getCursorPosition(RULER, { x: e.clientX, y: e.clientY });
+
+        MOVE.lastMouseX = e.clientX;
+        MOVE.lastMouseY = e.clientY;
+        MOVE.lastRulerLeft = RULER.left;
+        MOVE.lastRulerTop = RULER.top;
+        MOVE.lastRulerWidth = RULER.width;
+        MOVE.lastRulerHeight = RULER.height;
+
+        MOVE.cursorPosition = cursorPosition;
+        MOVE.moving = true;
+    });
+
     $overlay.addEventListener('mousemove', (e) => {
         // set cursor style
         const cursorPosition = getCursorPosition(RULER, { x: e.clientX, y: e.clientY });
@@ -265,7 +283,7 @@ export const bookmarklet = () => {
 
         setElementPosition($ruler, RULER);
 
-        $rulerInfo.innerText = `${RULER.width} x ${RULER.height}`;
+        rulerInfo.setInfo(RULER.width, RULER.height);
     });
 
     $overlay.addEventListener('mouseup', (e) => {
