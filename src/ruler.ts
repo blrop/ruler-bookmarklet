@@ -161,6 +161,13 @@ export const bookmarklet = () => {
             this.setPositionInHtml(this.position);
         }
 
+        private setPositionInHtml(position: ElementPosition) {
+            this.$el.style.left = `${position.left}px`;
+            this.$el.style.top = `${position.top}px`;
+            this.$el.style.width = `${position.width}px`;
+            this.$el.style.height = `${position.height}px`;
+        }
+
         public addSizeUpdateListener(callback: (width: number, height: number) => void) {
             this.onSizeUpdate = callback;
             this.onSizeUpdate(this.position.width, this.position.height);
@@ -260,12 +267,6 @@ export const bookmarklet = () => {
             this.onSizeUpdate(this.position.width, this.position.height);
         };
 
-        private setPositionInHtml(position: ElementPosition) {
-            this.$el.style.left = `${position.left}px`;
-            this.$el.style.top = `${position.top}px`;
-            this.$el.style.width = `${position.width}px`;
-            this.$el.style.height = `${position.height}px`;
-        }
 
         public getPosition() {
             return this.position; // todo: copy object via rest operator
