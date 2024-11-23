@@ -128,6 +128,7 @@ export const bookmarklet = () => {
 
     class Ruler {
         $el: HTMLElement;
+        move: Move;
         onSizeUpdate: (width: number, height: number) => void;
 
         position: ElementPosition = {
@@ -139,6 +140,16 @@ export const bookmarklet = () => {
 
         constructor($el: HTMLElement) {
             this.$el = $el;
+            this.move = {
+                moving: false,
+                cursorPosition: CursorPosition.Inside,
+                lastMouseX: null,
+                lastMouseY: null,
+                lastRulerLeft: null,
+                lastRulerTop: null,
+                lastRulerWidth: null,
+                lastRulerHeight: null,
+            };
 
             setStyle(this.$el, RULER_STYLE); // todo: use rest operator
             setStyle(this.$el, {
@@ -155,66 +166,85 @@ export const bookmarklet = () => {
             this.onSizeUpdate(this.position.width, this.position.height);
         }
 
-        update(distanceX: number, distanceY: number) {
+        public startMove(clientX: number, clientY: number, cursorPosition: CursorPosition) {
+            this.move.lastMouseX = clientX;
+            this.move.lastMouseY = clientY;
+            this.move.lastRulerLeft = this.position.left;
+            this.move.lastRulerTop = this.position.top;
+            this.move.lastRulerWidth = this.position.width;
+            this.move.lastRulerHeight = this.position.height;
+
+            this.move.cursorPosition = cursorPosition;
+            this.move.moving = true;
+        }
+
+        public stopMove() {
+            this.move.moving = false;
+        }
+
+        public update(clientX: number, clientY: number) {
+            const distanceX = clientX - this.move.lastMouseX;
+            const distanceY = clientY - this.move.lastMouseY;
+
             let newWidth = null;
             let newHeight = null;
 
-            if (MOVE.cursorPosition === CursorPosition.Inside) {
-                this.position.left = distanceX + MOVE.lastRulerLeft;
-                this.position.top = distanceY + MOVE.lastRulerTop;
+            if (this.move.cursorPosition === CursorPosition.Inside) {
+                this.position.left = distanceX + this.move.lastRulerLeft;
+                this.position.top = distanceY + this.move.lastRulerTop;
             }
 
-            if (MOVE.cursorPosition === CursorPosition.LeftTop) {
-                newWidth = -distanceX + MOVE.lastRulerWidth;
-                newHeight = -distanceY + MOVE.lastRulerHeight;
-                if (distanceX <= MOVE.lastRulerWidth) {
-                    this.position.left = distanceX + MOVE.lastRulerLeft;
+            if (this.move.cursorPosition === CursorPosition.LeftTop) {
+                newWidth = -distanceX + this.move.lastRulerWidth;
+                newHeight = -distanceY + this.move.lastRulerHeight;
+                if (distanceX <= this.move.lastRulerWidth) {
+                    this.position.left = distanceX + this.move.lastRulerLeft;
                 }
-                if (distanceY <= MOVE.lastRulerHeight) {
-                    this.position.top = distanceY + MOVE.lastRulerTop;
-                }
-            }
-
-            if (MOVE.cursorPosition === CursorPosition.Top) {
-                newHeight = -distanceY + MOVE.lastRulerHeight;
-                if (distanceY <= MOVE.lastRulerHeight) {
-                    this.position.top = distanceY + MOVE.lastRulerTop;
+                if (distanceY <= this.move.lastRulerHeight) {
+                    this.position.top = distanceY + this.move.lastRulerTop;
                 }
             }
 
-            if (MOVE.cursorPosition === CursorPosition.RightTop) {
-                newWidth = distanceX + MOVE.lastRulerWidth;
-                newHeight = -distanceY + MOVE.lastRulerHeight;
-                if (distanceY <= MOVE.lastRulerHeight) {
-                    this.position.top = distanceY + MOVE.lastRulerTop;
+            if (this.move.cursorPosition === CursorPosition.Top) {
+                newHeight = -distanceY + this.move.lastRulerHeight;
+                if (distanceY <= this.move.lastRulerHeight) {
+                    this.position.top = distanceY + this.move.lastRulerTop;
                 }
             }
 
-            if (MOVE.cursorPosition === CursorPosition.Right) {
-                newWidth = distanceX + MOVE.lastRulerWidth;
-            }
-
-            if (MOVE.cursorPosition === CursorPosition.RightBottom) {
-                newWidth = distanceX + MOVE.lastRulerWidth;
-                newHeight = distanceY + MOVE.lastRulerHeight;
-            }
-
-            if (MOVE.cursorPosition === CursorPosition.Bottom) {
-                newHeight = distanceY + MOVE.lastRulerHeight;
-            }
-
-            if (MOVE.cursorPosition === CursorPosition.LeftBottom) {
-                newWidth = -distanceX + MOVE.lastRulerWidth;
-                newHeight = distanceY + MOVE.lastRulerHeight;
-                if (distanceX <= MOVE.lastRulerWidth) {
-                    this.position.left = distanceX + MOVE.lastRulerLeft;
+            if (this.move.cursorPosition === CursorPosition.RightTop) {
+                newWidth = distanceX + this.move.lastRulerWidth;
+                newHeight = -distanceY + this.move.lastRulerHeight;
+                if (distanceY <= this.move.lastRulerHeight) {
+                    this.position.top = distanceY + this.move.lastRulerTop;
                 }
             }
 
-            if (MOVE.cursorPosition === CursorPosition.Left) {
-                newWidth = -distanceX + MOVE.lastRulerWidth;
-                if (distanceX <= MOVE.lastRulerWidth) {
-                    this.position.left = distanceX + MOVE.lastRulerLeft;
+            if (this.move.cursorPosition === CursorPosition.Right) {
+                newWidth = distanceX + this.move.lastRulerWidth;
+            }
+
+            if (this.move.cursorPosition === CursorPosition.RightBottom) {
+                newWidth = distanceX + this.move.lastRulerWidth;
+                newHeight = distanceY + this.move.lastRulerHeight;
+            }
+
+            if (this.move.cursorPosition === CursorPosition.Bottom) {
+                newHeight = distanceY + this.move.lastRulerHeight;
+            }
+
+            if (this.move.cursorPosition === CursorPosition.LeftBottom) {
+                newWidth = -distanceX + this.move.lastRulerWidth;
+                newHeight = distanceY + this.move.lastRulerHeight;
+                if (distanceX <= this.move.lastRulerWidth) {
+                    this.position.left = distanceX + this.move.lastRulerLeft;
+                }
+            }
+
+            if (this.move.cursorPosition === CursorPosition.Left) {
+                newWidth = -distanceX + this.move.lastRulerWidth;
+                if (distanceX <= this.move.lastRulerWidth) {
+                    this.position.left = distanceX + this.move.lastRulerLeft;
                 }
             }
 
@@ -230,30 +260,21 @@ export const bookmarklet = () => {
             this.onSizeUpdate(this.position.width, this.position.height);
         };
 
-        setPositionInHtml(position: ElementPosition) {
+        private setPositionInHtml(position: ElementPosition) {
             this.$el.style.left = `${position.left}px`;
             this.$el.style.top = `${position.top}px`;
             this.$el.style.width = `${position.width}px`;
             this.$el.style.height = `${position.height}px`;
         }
 
-        getPosition() {
-            return this.position;
+        public getPosition() {
+            return this.position; // todo: copy object via rest operator
+        }
+
+        public isMoving() {
+            return this.move.moving;
         }
     }
-
-    // global variables ------------------------------------------------------------------------------------------------
-
-    const MOVE: Move = {
-        moving: false,
-        cursorPosition: CursorPosition.Inside,
-        lastMouseX: null,
-        lastMouseY: null,
-        lastRulerLeft: null,
-        lastRulerTop: null,
-        lastRulerWidth: null,
-        lastRulerHeight: null,
-    };
 
     // elements creation -----------------------------------------------------------------------------------------------
 
@@ -286,34 +307,20 @@ export const bookmarklet = () => {
             return;
         }
 
-        const rulerPosition = ruler.getPosition();
-        const cursorPosition = getCursorPosition(rulerPosition, { x: e.clientX, y: e.clientY });
-
-        MOVE.lastMouseX = e.clientX;
-        MOVE.lastMouseY = e.clientY;
-        MOVE.lastRulerLeft = rulerPosition.left;
-        MOVE.lastRulerTop = rulerPosition.top;
-        MOVE.lastRulerWidth = rulerPosition.width;
-        MOVE.lastRulerHeight = rulerPosition.height;
-
-        MOVE.cursorPosition = cursorPosition;
-        MOVE.moving = true;
+        const cursorPosition = getCursorPosition(ruler.getPosition(), { x: e.clientX, y: e.clientY });
+        ruler.startMove(e.clientX, e.clientY, cursorPosition);
     });
 
     $overlay.addEventListener('mousemove', (e) => {
         // set cursor style
         const cursorPosition = getCursorPosition(ruler.getPosition(), { x: e.clientX, y: e.clientY });
-        const cursor = getCursorStyleByPosition(cursorPosition);
-        $overlay.style.cursor = $ruler.style.cursor = cursor;
+        $overlay.style.cursor = $ruler.style.cursor = getCursorStyleByPosition(cursorPosition);
 
-        if (!MOVE.moving) {
+        if (!ruler.isMoving()) {
             return;
         }
 
-        const distanceX = e.clientX - MOVE.lastMouseX;
-        const distanceY = e.clientY - MOVE.lastMouseY;
-
-        ruler.update(distanceX, distanceY);
+        ruler.update(e.clientX, e.clientY);
     });
 
     $overlay.addEventListener('mouseup', (e) => {
@@ -321,6 +328,6 @@ export const bookmarklet = () => {
             return;
         }
 
-        MOVE.moving = false;
+        ruler.stopMove();
     });
 };
