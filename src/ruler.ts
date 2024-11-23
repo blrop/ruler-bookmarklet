@@ -8,6 +8,17 @@ export const bookmarklet = () => {
         background: 'white',
         padding: '1px 3px',
     };
+    const RULER_STYLE = {
+        border: '1px solid #1b75d0',
+        background: '#1b75d02b',
+        cursor: 'move',
+        position: 'absolute',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        userSelect: 'none',
+        fontFamily: 'sans-serif',
+    };
 
     type ElementPosition = {
         left: number,
@@ -56,107 +67,13 @@ export const bookmarklet = () => {
         }
     };
 
-    const updateRuler = (distanceX: number, distanceY: number) => { // todo: get rid of global variable usage: convert RULER to an object
-        let newWidth = null;
-        let newHeight = null;
+    const getCursorPosition = (rulerPosition: ElementPosition, mouse: Coords): CursorPosition => {
+        const rulerRight = rulerPosition.left + rulerPosition.width;
+        const rulerBottom = rulerPosition.top + rulerPosition.height;
 
-        if (MOVE.cursorPosition === CursorPosition.Inside) {
-            RULER.left = distanceX + MOVE.lastRulerLeft;
-            RULER.top = distanceY + MOVE.lastRulerTop;
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.LeftTop) {
-            newWidth = -distanceX + MOVE.lastRulerWidth;
-            newHeight = -distanceY + MOVE.lastRulerHeight;
-            if (distanceX <= MOVE.lastRulerWidth) {
-                RULER.left = distanceX + MOVE.lastRulerLeft;
-            }
-            if (distanceY <= MOVE.lastRulerHeight) {
-                RULER.top = distanceY + MOVE.lastRulerTop;
-            }
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.Top) {
-            newHeight = -distanceY + MOVE.lastRulerHeight;
-            if (distanceY <= MOVE.lastRulerHeight) {
-                RULER.top = distanceY + MOVE.lastRulerTop;
-            }
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.RightTop) {
-            newWidth = distanceX + MOVE.lastRulerWidth;
-            newHeight = -distanceY + MOVE.lastRulerHeight;
-            if (distanceY <= MOVE.lastRulerHeight) {
-                RULER.top = distanceY + MOVE.lastRulerTop;
-            }
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.Right) {
-            newWidth = distanceX + MOVE.lastRulerWidth;
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.RightBottom) {
-            newWidth = distanceX + MOVE.lastRulerWidth;
-            newHeight = distanceY + MOVE.lastRulerHeight;
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.Bottom) {
-            newHeight = distanceY + MOVE.lastRulerHeight;
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.LeftBottom) {
-            newWidth = -distanceX + MOVE.lastRulerWidth;
-            newHeight = distanceY + MOVE.lastRulerHeight;
-            if (distanceX <= MOVE.lastRulerWidth) {
-                RULER.left = distanceX + MOVE.lastRulerLeft;
-            }
-        }
-
-        if (MOVE.cursorPosition === CursorPosition.Left) {
-            newWidth = -distanceX + MOVE.lastRulerWidth;
-            if (distanceX <= MOVE.lastRulerWidth) {
-                RULER.left = distanceX + MOVE.lastRulerLeft;
-            }
-        }
-
-        if (newWidth > 0) {
-            RULER.width = newWidth;
-        }
-        if (newHeight > 0) {
-            RULER.height = newHeight;
-        }
-    };
-
-    const getRulerStyle = (RULER: ElementPosition) => ({
-        border: '1px solid #1b75d0',
-        background: '#1b75d02b',
-        cursor: 'move',
-        position: 'absolute',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        left: `${RULER.left}px`,
-        width: `${RULER.width}px`,
-        top: `${RULER.top}px`,
-        height: `${RULER.height}px`,
-        userSelect: 'none',
-        fontFamily: 'sans-serif',
-    });
-
-    const setElementPosition = ($el: HTMLElement, position: ElementPosition) => {
-        $el.style.left = `${position.left}px`;
-        $el.style.top = `${position.top}px`;
-        $el.style.width = `${position.width}px`;
-        $el.style.height = `${position.height}px`;
-    };
-
-    const getCursorPosition = (ruler: ElementPosition, mouse: Coords): CursorPosition => {
-        const rulerRight = ruler.left + ruler.width;
-        const rulerBottom = ruler.top + ruler.height;
-
-        const leftDistance = mouse.x - ruler.left;
+        const leftDistance = mouse.x - rulerPosition.left;
         const rightDistance = rulerRight - mouse.x;
-        const topDistance = mouse.y - ruler.top;
+        const topDistance = mouse.y - rulerPosition.top;
         const bottomDistance = rulerBottom - mouse.y;
 
         if (leftDistance < -EDGE_SIZE || rightDistance < -EDGE_SIZE || topDistance < -EDGE_SIZE || bottomDistance < -EDGE_SIZE) {
@@ -209,6 +126,122 @@ export const bookmarklet = () => {
         }
     }
 
+    class Ruler {
+        $el: HTMLElement;
+        onSizeUpdate: (width: number, height: number) => void;
+
+        position: ElementPosition = {
+            left: Math.round(window.innerWidth / 4),
+            top: Math.round(window.innerHeight / 4),
+            width: Math.round(window.innerWidth / 2),
+            height: Math.round(window.innerHeight / 2),
+        };
+
+        constructor($el: HTMLElement) {
+            this.$el = $el;
+
+            setStyle(this.$el, RULER_STYLE); // todo: use rest operator
+            setStyle(this.$el, {
+                left: `${this.position.left}px`,
+                width: `${this.position.width}px`,
+                top: `${this.position.top}px`,
+                height: `${this.position.height}px`,
+            });
+            this.setPositionInHtml(this.position);
+        }
+
+        public addSizeUpdateListener(callback: (width: number, height: number) => void) {
+            this.onSizeUpdate = callback;
+            this.onSizeUpdate(this.position.width, this.position.height);
+        }
+
+        update(distanceX: number, distanceY: number) {
+            let newWidth = null;
+            let newHeight = null;
+
+            if (MOVE.cursorPosition === CursorPosition.Inside) {
+                this.position.left = distanceX + MOVE.lastRulerLeft;
+                this.position.top = distanceY + MOVE.lastRulerTop;
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.LeftTop) {
+                newWidth = -distanceX + MOVE.lastRulerWidth;
+                newHeight = -distanceY + MOVE.lastRulerHeight;
+                if (distanceX <= MOVE.lastRulerWidth) {
+                    this.position.left = distanceX + MOVE.lastRulerLeft;
+                }
+                if (distanceY <= MOVE.lastRulerHeight) {
+                    this.position.top = distanceY + MOVE.lastRulerTop;
+                }
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.Top) {
+                newHeight = -distanceY + MOVE.lastRulerHeight;
+                if (distanceY <= MOVE.lastRulerHeight) {
+                    this.position.top = distanceY + MOVE.lastRulerTop;
+                }
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.RightTop) {
+                newWidth = distanceX + MOVE.lastRulerWidth;
+                newHeight = -distanceY + MOVE.lastRulerHeight;
+                if (distanceY <= MOVE.lastRulerHeight) {
+                    this.position.top = distanceY + MOVE.lastRulerTop;
+                }
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.Right) {
+                newWidth = distanceX + MOVE.lastRulerWidth;
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.RightBottom) {
+                newWidth = distanceX + MOVE.lastRulerWidth;
+                newHeight = distanceY + MOVE.lastRulerHeight;
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.Bottom) {
+                newHeight = distanceY + MOVE.lastRulerHeight;
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.LeftBottom) {
+                newWidth = -distanceX + MOVE.lastRulerWidth;
+                newHeight = distanceY + MOVE.lastRulerHeight;
+                if (distanceX <= MOVE.lastRulerWidth) {
+                    this.position.left = distanceX + MOVE.lastRulerLeft;
+                }
+            }
+
+            if (MOVE.cursorPosition === CursorPosition.Left) {
+                newWidth = -distanceX + MOVE.lastRulerWidth;
+                if (distanceX <= MOVE.lastRulerWidth) {
+                    this.position.left = distanceX + MOVE.lastRulerLeft;
+                }
+            }
+
+            if (newWidth > 0) {
+                this.position.width = newWidth;
+            }
+            if (newHeight > 0) {
+                this.position.height = newHeight;
+            }
+
+            this.setPositionInHtml(this.position);
+
+            this.onSizeUpdate(this.position.width, this.position.height);
+        };
+
+        setPositionInHtml(position: ElementPosition) {
+            this.$el.style.left = `${position.left}px`;
+            this.$el.style.top = `${position.top}px`;
+            this.$el.style.width = `${position.width}px`;
+            this.$el.style.height = `${position.height}px`;
+        }
+
+        getPosition() {
+            return this.position;
+        }
+    }
+
     // global variables ------------------------------------------------------------------------------------------------
 
     const MOVE: Move = {
@@ -221,12 +254,6 @@ export const bookmarklet = () => {
         lastRulerWidth: null,
         lastRulerHeight: null,
     };
-    const RULER: ElementPosition = {
-        left: Math.round(window.innerWidth / 4),
-        top: Math.round(window.innerHeight / 4),
-        width: Math.round(window.innerWidth / 2),
-        height: Math.round(window.innerHeight / 2),
-    };
 
     // elements creation -----------------------------------------------------------------------------------------------
 
@@ -234,8 +261,7 @@ export const bookmarklet = () => {
     setStyle($overlay, OVERLAY_STYLE);
 
     const $ruler = document.createElement('div');
-    setStyle($ruler, getRulerStyle(RULER));
-    setElementPosition($ruler, RULER);
+    const ruler = new Ruler($ruler);
 
     const $rulerInfo = document.createElement('div');
 
@@ -243,8 +269,15 @@ export const bookmarklet = () => {
     $overlay.appendChild($ruler);
     $ruler.appendChild($rulerInfo);
 
+    // objects creation ------------------------------------------------------------------------------------------------
+
     const rulerInfo = new RulerInfo($rulerInfo);
-    rulerInfo.setInfo(RULER.width, RULER.height);
+
+    const handleSizeUpdate = (width: number, height: number) => {
+        rulerInfo.setInfo(width, height);
+    };
+
+    ruler.addSizeUpdateListener(handleSizeUpdate);
 
     // event listeners -------------------------------------------------------------------------------------------------
 
@@ -253,14 +286,15 @@ export const bookmarklet = () => {
             return;
         }
 
-        const cursorPosition = getCursorPosition(RULER, { x: e.clientX, y: e.clientY });
+        const rulerPosition = ruler.getPosition();
+        const cursorPosition = getCursorPosition(rulerPosition, { x: e.clientX, y: e.clientY });
 
         MOVE.lastMouseX = e.clientX;
         MOVE.lastMouseY = e.clientY;
-        MOVE.lastRulerLeft = RULER.left;
-        MOVE.lastRulerTop = RULER.top;
-        MOVE.lastRulerWidth = RULER.width;
-        MOVE.lastRulerHeight = RULER.height;
+        MOVE.lastRulerLeft = rulerPosition.left;
+        MOVE.lastRulerTop = rulerPosition.top;
+        MOVE.lastRulerWidth = rulerPosition.width;
+        MOVE.lastRulerHeight = rulerPosition.height;
 
         MOVE.cursorPosition = cursorPosition;
         MOVE.moving = true;
@@ -268,7 +302,7 @@ export const bookmarklet = () => {
 
     $overlay.addEventListener('mousemove', (e) => {
         // set cursor style
-        const cursorPosition = getCursorPosition(RULER, { x: e.clientX, y: e.clientY });
+        const cursorPosition = getCursorPosition(ruler.getPosition(), { x: e.clientX, y: e.clientY });
         const cursor = getCursorStyleByPosition(cursorPosition);
         $overlay.style.cursor = $ruler.style.cursor = cursor;
 
@@ -279,11 +313,7 @@ export const bookmarklet = () => {
         const distanceX = e.clientX - MOVE.lastMouseX;
         const distanceY = e.clientY - MOVE.lastMouseY;
 
-        updateRuler(distanceX, distanceY);
-
-        setElementPosition($ruler, RULER);
-
-        rulerInfo.setInfo(RULER.width, RULER.height);
+        ruler.update(distanceX, distanceY);
     });
 
     $overlay.addEventListener('mouseup', (e) => {
