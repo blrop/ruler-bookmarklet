@@ -151,7 +151,7 @@ export const bookmarklet = () => {
                 lastRulerHeight: null,
             };
 
-            setStyle(this.$el, RULER_STYLE); // todo: use rest operator
+            setStyle(this.$el, RULER_STYLE); // rest doesn't work in bookmarklet
             setStyle(this.$el, {
                 left: `${this.position.left}px`,
                 width: `${this.position.width}px`,
@@ -269,7 +269,7 @@ export const bookmarklet = () => {
 
 
         public getPosition() {
-            return this.position; // todo: copy object via rest operator
+            return Object.assign({}, this.position); // rest doesn't work in bookmarklet
         }
 
         public isMoving() {
