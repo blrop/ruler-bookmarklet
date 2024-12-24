@@ -357,7 +357,9 @@ export const bookmarklet = () => {
     });
 
     document.body.addEventListener('keydown', (e) => {
-        e.preventDefault();
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+            e.preventDefault();
+        }
 
         const stepSize = e.shiftKey ? KEYBOARD_MOVE_STEP : 1;
         let x = 0;
