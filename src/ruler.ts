@@ -130,7 +130,7 @@ export const bookmarklet = () => {
     class Ruler {
         $el: HTMLElement;
         move: Move;
-        onSizeUpdate: (width: number, height: number) => void;
+        sizeUpdateCallback: (width: number, height: number) => void;
 
         position: ElementPosition = {
             left: Math.round(window.innerWidth / 4),
@@ -162,6 +162,16 @@ export const bookmarklet = () => {
             this.setPositionInHtml(this.position);
         }
 
+        private updatePosition(position: Partial<ElementPosition>) {
+            this.position.left = position.left ?? this.position.left;
+            this.position.top = position.top ?? this.position.top;
+            this.position.width = position.width ?? this.position.width;
+            this.position.height = position.height ?? this.position.height;
+
+            this.setPositionInHtml(this.position);
+            this.sizeUpdateCallback(this.position.width, this.position.height);
+        }
+
         private setPositionInHtml(position: ElementPosition) {
             this.$el.style.left = `${position.left}px`;
             this.$el.style.top = `${position.top}px`;
@@ -170,8 +180,8 @@ export const bookmarklet = () => {
         }
 
         public addSizeUpdateListener(callback: (width: number, height: number) => void) {
-            this.onSizeUpdate = callback;
-            this.onSizeUpdate(this.position.width, this.position.height);
+            this.sizeUpdateCallback = callback;
+            this.sizeUpdateCallback(this.position.width, this.position.height);
         }
 
         public startMove(clientX: number, clientY: number, cursorPosition: CursorPosition) {
@@ -197,26 +207,28 @@ export const bookmarklet = () => {
             let newWidth = null;
             let newHeight = null;
 
+            const position: Partial<ElementPosition> = {};
+
             if (this.move.cursorPosition === CursorPosition.Inside) {
-                this.position.left = distanceX + this.move.lastRulerLeft;
-                this.position.top = distanceY + this.move.lastRulerTop;
+                position.left = distanceX + this.move.lastRulerLeft;
+                position.top = distanceY + this.move.lastRulerTop;
             }
 
             if (this.move.cursorPosition === CursorPosition.LeftTop) {
                 newWidth = -distanceX + this.move.lastRulerWidth;
                 newHeight = -distanceY + this.move.lastRulerHeight;
                 if (distanceX <= this.move.lastRulerWidth) {
-                    this.position.left = distanceX + this.move.lastRulerLeft;
+                    position.left = distanceX + this.move.lastRulerLeft;
                 }
                 if (distanceY <= this.move.lastRulerHeight) {
-                    this.position.top = distanceY + this.move.lastRulerTop;
+                    position.top = distanceY + this.move.lastRulerTop;
                 }
             }
 
             if (this.move.cursorPosition === CursorPosition.Top) {
                 newHeight = -distanceY + this.move.lastRulerHeight;
                 if (distanceY <= this.move.lastRulerHeight) {
-                    this.position.top = distanceY + this.move.lastRulerTop;
+                    position.top = distanceY + this.move.lastRulerTop;
                 }
             }
 
@@ -224,7 +236,7 @@ export const bookmarklet = () => {
                 newWidth = distanceX + this.move.lastRulerWidth;
                 newHeight = -distanceY + this.move.lastRulerHeight;
                 if (distanceY <= this.move.lastRulerHeight) {
-                    this.position.top = distanceY + this.move.lastRulerTop;
+                    position.top = distanceY + this.move.lastRulerTop;
                 }
             }
 
@@ -245,42 +257,39 @@ export const bookmarklet = () => {
                 newWidth = -distanceX + this.move.lastRulerWidth;
                 newHeight = distanceY + this.move.lastRulerHeight;
                 if (distanceX <= this.move.lastRulerWidth) {
-                    this.position.left = distanceX + this.move.lastRulerLeft;
+                    position.left = distanceX + this.move.lastRulerLeft;
                 }
             }
 
             if (this.move.cursorPosition === CursorPosition.Left) {
                 newWidth = -distanceX + this.move.lastRulerWidth;
                 if (distanceX <= this.move.lastRulerWidth) {
-                    this.position.left = distanceX + this.move.lastRulerLeft;
+                    position.left = distanceX + this.move.lastRulerLeft;
                 }
             }
 
             if (newWidth > 0) {
-                this.position.width = newWidth;
+                position.width = newWidth;
             }
             if (newHeight > 0) {
-                this.position.height = newHeight;
+                position.height = newHeight;
             }
 
-            this.setPositionInHtml(this.position); // todo: move to 'onPositionUpdate'
-
-            this.onSizeUpdate(this.position.width, this.position.height); // todo: move to 'onPositionUpdate'
+            this.updatePosition(position);
         };
 
         public moveBy(x: number, y: number) {
-            this.position.left += x;
-            this.position.top += y;
-
-            this.setPositionInHtml(this.position);
+            const position: Partial<ElementPosition> = {};
+            position.left = this.position.left + x;
+            position.top = this.position.top + y;
+            this.updatePosition(position);
         }
 
         public resizeBy(x: number, y: number) {
-            this.position.width += x;
-            this.position.height += y;
-
-            this.setPositionInHtml(this.position);
-            this.onSizeUpdate(this.position.width, this.position.height);
+            const position: Partial<ElementPosition> = {};
+            position.width = this.position.width + x;
+            position.height = this.position.height + y;
+            this.updatePosition(position);
         }
 
         public getPosition() {
