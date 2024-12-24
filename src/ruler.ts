@@ -1,5 +1,6 @@
 export const bookmarklet = () => {
     const EDGE_SIZE = 10;
+    const KEYBOARD_MOVE_STEP = 10;
     const OVERLAY_STYLE = {
         position: 'fixed',
         inset: '0',
@@ -189,7 +190,7 @@ export const bookmarklet = () => {
             this.move.moving = false;
         }
 
-        public update(clientX: number, clientY: number) {
+        public updateByMouse(clientX: number, clientY: number) {
             const distanceX = clientX - this.move.lastMouseX;
             const distanceY = clientY - this.move.lastMouseY;
 
@@ -262,11 +263,25 @@ export const bookmarklet = () => {
                 this.position.height = newHeight;
             }
 
-            this.setPositionInHtml(this.position);
+            this.setPositionInHtml(this.position); // todo: move to 'onPositionUpdate'
 
-            this.onSizeUpdate(this.position.width, this.position.height);
+            this.onSizeUpdate(this.position.width, this.position.height); // todo: move to 'onPositionUpdate'
         };
 
+        public moveBy(x: number, y: number) {
+            this.position.left += x;
+            this.position.top += y;
+
+            this.setPositionInHtml(this.position);
+        }
+
+        public resizeBy(x: number, y: number) {
+            this.position.width += x;
+            this.position.height += y;
+
+            this.setPositionInHtml(this.position);
+            this.onSizeUpdate(this.position.width, this.position.height);
+        }
 
         public getPosition() {
             return Object.assign({}, this.position); // rest doesn't work in bookmarklet
@@ -321,7 +336,7 @@ export const bookmarklet = () => {
             return;
         }
 
-        ruler.update(e.clientX, e.clientY);
+        ruler.updateByMouse(e.clientX, e.clientY);
     });
 
     $overlay.addEventListener('mouseup', (e) => {
@@ -330,5 +345,41 @@ export const bookmarklet = () => {
         }
 
         ruler.stopMove();
+    });
+
+    document.body.addEventListener('keydown', (e) => {
+        e.preventDefault();
+
+        const stepSize = e.shiftKey ? KEYBOARD_MOVE_STEP : 1;
+        let x = 0;
+        let y = 0;
+
+        switch (e.key) {
+            case 'ArrowLeft':
+                x -= stepSize;
+                break;
+
+            case 'ArrowRight':
+                x += stepSize;
+                break;
+
+            case 'ArrowUp':
+                y -= stepSize;
+                break;
+
+            case 'ArrowDown':
+                y += stepSize;
+                break;
+
+            case 'Escape':
+
+                break;
+        }
+
+        if (e.ctrlKey) {
+            ruler.resizeBy(x, y);
+        } else {
+            ruler.moveBy(x, y);
+        }
     });
 };
