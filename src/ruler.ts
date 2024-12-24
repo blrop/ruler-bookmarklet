@@ -327,16 +327,16 @@ export const bookmarklet = () => {
 
     // event listeners -------------------------------------------------------------------------------------------------
 
-    $overlay.addEventListener('mousedown', (e) => {
+    const onOverlayMouseDown = (e: MouseEvent) => {
         if (e.button !== 0) {
             return;
         }
 
         const cursorPosition = getCursorPosition(ruler.getPosition(), { x: e.clientX, y: e.clientY });
         ruler.startMove(e.clientX, e.clientY, cursorPosition);
-    });
+    };
 
-    $overlay.addEventListener('mousemove', (e) => {
+    const onOverlayMouseMove = (e: MouseEvent) => {
         // set cursor style
         const cursorPosition = getCursorPosition(ruler.getPosition(), { x: e.clientX, y: e.clientY });
         $overlay.style.cursor = $ruler.style.cursor = getCursorStyleByPosition(cursorPosition);
@@ -346,17 +346,17 @@ export const bookmarklet = () => {
         }
 
         ruler.updateByMouse(e.clientX, e.clientY);
-    });
+    };
 
-    $overlay.addEventListener('mouseup', (e) => {
+    const onOverlayMouseUp = (e: MouseEvent) => {
         if (e.button !== 0) {
             return;
         }
 
         ruler.stopMove();
-    });
+    };
 
-    document.body.addEventListener('keydown', (e) => {
+    const onKeyDown = (e: KeyboardEvent) => {
         if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
             e.preventDefault();
         }
@@ -383,7 +383,14 @@ export const bookmarklet = () => {
                 break;
 
             case 'Escape':
+                $overlay.removeEventListener('mousedown', onOverlayMouseDown);
+                $overlay.removeEventListener('mousemove', onOverlayMouseMove);
+                $overlay.removeEventListener('mouseup', onOverlayMouseUp);
+                document.body.removeEventListener('keydown', onKeyDown);
 
+                $rulerInfo.remove();
+                $ruler.remove();
+                $overlay.remove();
                 break;
         }
 
@@ -392,5 +399,13 @@ export const bookmarklet = () => {
         } else {
             ruler.moveBy(x, y);
         }
-    });
+    };
+
+    $overlay.addEventListener('mousedown', onOverlayMouseDown);
+
+    $overlay.addEventListener('mousemove', onOverlayMouseMove);
+
+    $overlay.addEventListener('mouseup', onOverlayMouseUp);
+
+    document.body.addEventListener('keydown', onKeyDown);
 };

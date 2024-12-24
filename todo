@@ -1,5 +1,4 @@
 - make exit with removing of all elements (including overlay)
-    - via Esc
     - via close button
 - move / resize using keyboard (arrows / shift + arrows)
     - show "resize" when Ctrl is pressed
