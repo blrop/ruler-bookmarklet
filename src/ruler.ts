@@ -10,6 +10,7 @@ Usage via keyboard:
 - Arrows+Shift: faster move
 - Arrows+Ctrl: resize
 - Arrows+Ctrl+Shift: faster resize
+- Esc: exit
 
 Author: Igor Siluianov
 https://isln.dev
@@ -340,6 +341,7 @@ https://isln.dev
 
     const $overlay: HTMLElement = document.createElement('div');
     setStyle($overlay, OVERLAY_STYLE);
+    $overlay.setAttribute('data-info', 'SCREEN RULER');
 
     const $ruler = document.createElement('div');
     const ruler = new Ruler($ruler);
