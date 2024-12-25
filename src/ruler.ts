@@ -28,6 +28,7 @@ https://isln.dev
         padding: '1px 3px',
         whiteSpace: 'nowrap',
         fontSize: '16px',
+        fontFamily: 'monospace',
         border: '1px solid #1b75d0',
     };
     const INFO_ICON_STYLE = {
