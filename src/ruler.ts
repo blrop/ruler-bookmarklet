@@ -1,4 +1,4 @@
-export const bookmarklet = () => {
+export const screenRuler = () => {
     const VERSION = '1.0';
     const EDGE_SIZE = 10;
     const KEYBOARD_MOVE_STEP = 10;

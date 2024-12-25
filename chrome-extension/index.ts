@@ -1,4 +1,4 @@
-import { bookmarklet } from '../src/ruler';
+import { screenRuler } from '../src/ruler';
 
 console.log('start!');
-bookmarklet();
+screenRuler();
