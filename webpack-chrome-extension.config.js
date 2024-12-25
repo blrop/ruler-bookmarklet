@@ -5,7 +5,6 @@ const DIR = 'chrome-extension';
 module.exports = {
     entry: `./${DIR}/index.ts`,
     mode: 'production',
-    devtool: 'source-map',
     module: {
         rules: [
             {

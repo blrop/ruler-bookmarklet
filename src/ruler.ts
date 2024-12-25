@@ -18,6 +18,7 @@ https://isln.dev
     const OVERLAY_STYLE = {
         position: 'fixed',
         inset: '0',
+        zIndex: '1000',
     };
     const RULER_DISPLAY_STYLE = {
         display: 'flex',

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Screen Ruler",
-  "description": "Measure size of page parts",
+  "name": "Screen Ruler isln",
+  "description": "Lightweight and easy to use page measurement tool. Supports mouse and keyboard input.",
   "version": "1.0",
   "action": {
     "default_icon": "images/icon-16.png"
