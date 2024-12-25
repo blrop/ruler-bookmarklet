@@ -1,4 +1,4 @@
-import { bookmarklet } from './ruler';
+import { bookmarklet } from '../src/ruler';
 
 document.addEventListener('DOMContentLoaded', () => {
     let link = <HTMLLinkElement>document.getElementById('js-bookmarklet');

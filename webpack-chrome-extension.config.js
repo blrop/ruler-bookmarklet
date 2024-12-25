@@ -1,7 +1,9 @@
 const path = require('path');
 
+const DIR = 'chrome-extension';
+
 module.exports = {
-    entry: './src/index.ts',
+    entry: `./${DIR}/index.ts`,
     mode: 'production',
     devtool: 'source-map',
     module: {
@@ -17,7 +19,7 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        filename: 'bookmarklet.js',
-        path: path.resolve(__dirname, 'dist'),
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, `${DIR}/files/dist`),
     },
 };

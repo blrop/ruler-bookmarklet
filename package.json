@@ -1,7 +1,9 @@
 {
   "scripts": {
-    "build": "webpack",
-    "start": "webpack --watch"
+    "build-bm": "webpack --config webpack-bookmarklet.config.js",
+    "watch-bm": "webpack --config webpack-bookmarklet.config.js --watch",
+    "build-ex": "webpack --config webpack-chrome-extension.config.js",
+    "watch-ex": "webpack --config webpack-chrome-extension.config.js --watch"
   },
   "devDependencies": {
     "ts-loader": "^9.5.1",
