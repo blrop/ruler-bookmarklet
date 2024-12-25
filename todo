@@ -1,6 +1,4 @@
 - make exit with removing of all elements (including overlay)
     - via close button
-- move / resize using keyboard (arrows / shift + arrows)
-    - show "resize" when Ctrl is pressed
-- show numbers outside of the ruler if the ruler is too small
 - show left, top (and right, bottom?)
+- show numbers outside of the ruler if the ruler is too small
