@@ -1,13 +1,44 @@
 export const bookmarklet = () => {
+    const VERSION = '1.0';
     const EDGE_SIZE = 10;
     const KEYBOARD_MOVE_STEP = 10;
+    const ABOUT = `
+Screen Ruler v. ${VERSION}
+
+Usage via keyboard:
+- Arrows: move
+- Arrows+Shift: faster move
+- Arrows+Ctrl: resize
+- Arrows+Ctrl+Shift: faster resize
+
+Author: Igor Siluianov
+https://isln.dev
+    `;
     const OVERLAY_STYLE = {
         position: 'fixed',
         inset: '0',
     };
-    const RULER_INFO_STYLE = {
+    const RULER_DISPLAY_STYLE = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+    };
+    const RULER_SIZE_INFO_STYLE = {
         background: 'white',
         padding: '1px 3px',
+        whiteSpace: 'nowrap',
+    };
+    const INFO_ICON_STYLE = {
+        background: '#404040',
+        borderRadius: '7px',
+        width: '14px',
+        height: '14px',
+        color: 'white',
+        fontSize: '11px',
+        textAlign: 'center',
+        lineHeight: '14px',
+        fontWeight: 'bold',
+        cursor: 'default',
     };
     const RULER_STYLE = {
         border: '1px solid #1b75d0',
@@ -118,12 +149,10 @@ export const bookmarklet = () => {
 
         constructor($el: HTMLElement) {
             this.$el = $el;
-
-            setStyle(this.$el, RULER_INFO_STYLE);
         }
 
         setInfo(width: number, height: number) {
-            $rulerInfo.innerText = `${width} x ${height}`;
+            this.$el.innerText = `${width} x ${height}`;
         }
     }
 
@@ -309,15 +338,24 @@ export const bookmarklet = () => {
     const $ruler = document.createElement('div');
     const ruler = new Ruler($ruler);
 
-    const $rulerInfo = document.createElement('div');
+    const $rulerDisplay = document.createElement('div');
+    setStyle($rulerDisplay, RULER_DISPLAY_STYLE);
+    const $rulerSizeInfo = document.createElement('div');
+    setStyle($rulerSizeInfo, RULER_SIZE_INFO_STYLE);
+    const $infoIcon = document.createElement('div');
+    $infoIcon.innerText = 'i';
+    $infoIcon.title = ABOUT;
+    setStyle($infoIcon, INFO_ICON_STYLE);
 
     document.body.appendChild($overlay);
     $overlay.appendChild($ruler);
-    $ruler.appendChild($rulerInfo);
+    $ruler.appendChild($rulerDisplay);
+    $rulerDisplay.appendChild($rulerSizeInfo);
+    $rulerDisplay.appendChild($infoIcon);
 
     // objects creation ------------------------------------------------------------------------------------------------
 
-    const rulerInfo = new RulerInfo($rulerInfo);
+    const rulerInfo = new RulerInfo($rulerSizeInfo);
 
     const handleSizeUpdate = (width: number, height: number) => {
         rulerInfo.setInfo(width, height);
@@ -388,7 +426,9 @@ export const bookmarklet = () => {
                 $overlay.removeEventListener('mouseup', onOverlayMouseUp);
                 document.body.removeEventListener('keydown', onKeyDown);
 
-                $rulerInfo.remove();
+                $rulerSizeInfo.remove();
+                $infoIcon.remove();
+                $rulerDisplay.remove();
                 $ruler.remove();
                 $overlay.remove();
                 break;
