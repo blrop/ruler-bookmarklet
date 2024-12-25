@@ -7,7 +7,7 @@
     "default_icon": "images/icon-16.png"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "dist/bundle.js"
   },
   "icons": {
     "16": "images/icon-16.png",
