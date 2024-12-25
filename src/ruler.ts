@@ -28,6 +28,7 @@ https://isln.dev
         padding: '1px 3px',
         whiteSpace: 'nowrap',
         fontSize: '16px',
+        border: '1px solid #1b75d0',
     };
     const INFO_ICON_STYLE = {
         background: '#404040',
@@ -152,15 +153,18 @@ https://isln.dev
             this.$el = $el;
         }
 
-        setInfo(width: number, height: number) {
-            this.$el.innerText = `${width} x ${height}`;
+        setInfo(position: ElementPosition) {
+            const bordersWidth = 2;
+            const right = window.innerWidth - position.left - position.width - bordersWidth;
+            const bottom = window.innerHeight - position.top - position.height - bordersWidth;
+            this.$el.innerText = `${position.width} x ${position.height}\nL: ${position.left}; T: ${position.top}\nR: ${right}; B: ${bottom}`;
         }
     }
 
     class Ruler {
         $el: HTMLElement;
         move: Move;
-        sizeUpdateCallback: (width: number, height: number) => void;
+        sizeUpdateCallback: (position: ElementPosition) => void;
 
         position: ElementPosition = {
             left: Math.round(window.innerWidth / 4),
@@ -199,7 +203,7 @@ https://isln.dev
             this.position.height = position.height ?? this.position.height;
 
             this.setPositionInHtml(this.position);
-            this.sizeUpdateCallback(this.position.width, this.position.height);
+            this.sizeUpdateCallback(this.position);
         }
 
         private setPositionInHtml(position: ElementPosition) {
@@ -209,9 +213,9 @@ https://isln.dev
             this.$el.style.height = `${position.height}px`;
         }
 
-        public addSizeUpdateListener(callback: (width: number, height: number) => void) {
+        public addPositionUpdateListener(callback: (position: ElementPosition) => void) {
             this.sizeUpdateCallback = callback;
-            this.sizeUpdateCallback(this.position.width, this.position.height);
+            this.sizeUpdateCallback(this.position);
         }
 
         public startMove(clientX: number, clientY: number, cursorPosition: CursorPosition) {
@@ -358,11 +362,11 @@ https://isln.dev
 
     const rulerInfo = new RulerInfo($rulerSizeInfo);
 
-    const handleSizeUpdate = (width: number, height: number) => {
-        rulerInfo.setInfo(width, height);
+    const handlePositionUpdate = (position: ElementPosition) => {
+        rulerInfo.setInfo(position);
     };
 
-    ruler.addSizeUpdateListener(handleSizeUpdate);
+    ruler.addPositionUpdateListener(handlePositionUpdate);
 
     // event listeners -------------------------------------------------------------------------------------------------
 
