@@ -1,5 +1,6 @@
 export const screenRuler = () => {
-    const VERSION = '1.0';
+    const VERSION = '1.1';
+    const OVERLAY_ID = 'SCREEN_RULER';
     const EDGE_SIZE = 10;
     const KEYBOARD_MOVE_STEP = 10;
     const ABOUT = `
@@ -340,9 +341,13 @@ https://isln.dev
 
     // elements creation -----------------------------------------------------------------------------------------------
 
+    if (document.getElementById(OVERLAY_ID)) {
+        return;
+    }
+
     const $overlay: HTMLElement = document.createElement('div');
     setStyle($overlay, OVERLAY_STYLE);
-    $overlay.setAttribute('data-info', 'SCREEN RULER');
+    $overlay.setAttribute('id', OVERLAY_ID);
 
     const $ruler = document.createElement('div');
     const ruler = new Ruler($ruler);
